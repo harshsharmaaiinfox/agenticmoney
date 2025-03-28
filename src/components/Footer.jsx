@@ -1,30 +1,49 @@
-import react from "react";
+import React, { useState, useEffect } from "react";
 
-const Footer = () => { 
-    return(
-        <>
-         {/* FOOTER SECTION START */}
-         <footer className="footer">
+const Footer = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.scrollY > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <>
+      {/* FOOTER SECTION START */}
+      <footer className="footer">
         <div className="container">
           <div className="row text-left">
             {/* Logo & Description */}
             <div className="col-md-3 mb-4 text-control">
               <div className="footer-logo">
-               <a href="/"> <img src="./images/web-logo.png" alt="Logo" /></a>
+                <a href="/"> <img src="./images/web-logo.png" alt="Logo" /></a>
               </div>
               <p className="mt-3">
-              At AgenticMoney, we empower your financial journey with expert insights, cutting-edge tools, and strategic guidance. Your success is our priority.
+                At AgenticMoney, we empower your financial journey with expert insights, cutting-edge tools, and strategic guidance. Your success is our priority.
               </p>
             </div>
             {/* Pages */}
             <div className="col-md-3 mb-4 text-control">
               <h6>Pages</h6>
               <a href="/">Home</a>
-              <a href="/privacy-policy">Privacy Ploicy</a>
-              <a href="/disclaimer">Disclaimer </a>
+              <a href="/privacy-policy">Privacy Policy</a>
+              <a href="/disclaimer">Disclaimer</a>
               <a href="/contact">Contact Us</a>
               <a href="/cookie-policy">Cookie Policy</a>
-              <a href="/term-of-use">Term Of Use</a>
+              <a href="/term-of-use">Terms of Use</a>
               <a href="/Accessibility-Statement">Accessibility Statement</a>
             </div>
             {/* Contact Info */}
@@ -70,14 +89,36 @@ const Footer = () => {
           </div>
           <hr />
           <div className="copyright">
-            ©2025 Agenticmoney® Global Inc. All rights reserved. General information only — not financial advice 
+            ©2025 Agenticmoney® Global Inc. All rights reserved. General information only — not financial advice
           </div>
         </div>
       </footer>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      {/* FOOTER SECTION ENDS HERE */}
-        </>
-    );
+
+      {/* Back to Top Button */}
+      {isVisible && (
+        <button
+          className="back-to-top"
+          onClick={scrollToTop}
+          style={{
+            position: "fixed",
+            bottom: "80px",
+            widows: "50px",
+            height: "43px",
+            right: "50px",
+            padding: "10px 15px",
+            background: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "50%",
+            cursor: "pointer",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+        <i class="fa-solid fa-arrow-up"></i>
+        </button>
+      )}
+    </>
+  );
 };
 
 export default Footer;
