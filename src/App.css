@@ -447,3 +447,262 @@
   font-size: 12px;
   color: #666;
 }
+
+
+
+/* FinancialForm.css */
+
+/* Main container for the two-column layout */
+.main-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f5f7fa;
+  gap: 20px;
+}
+
+/* Left Side: Form Container */
+.form-container {
+  flex: 1;
+  max-width: 50%;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.form-content-wrapper {
+  display: flex;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.tab-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.tab-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.tab-btn.active {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.form-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.form-section {
+  display: none;
+}
+
+.form-section.active {
+  display: block;
+}
+
+.form-section h2 {
+  color: #1a73e8;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.form-section p {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+}
+
+.checkbox-group {
+  flex-direction: column;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+}
+
+.radio-group input,
+.checkbox-group input {
+  margin-right: 8px;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn-back,
+.btn-next,
+.btn-start {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.btn-back {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-back:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-next,
+.btn-start {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.btn-next:hover,
+.btn-start:hover {
+  background-color: #1557b0;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Right Side: Response Container */
+.response-container {
+  flex: 1;
+  max-width: 50%;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.response-container h2 {
+  color: #1a73e8;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.no-insights {
+  color: #666;
+  font-size: 16px;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.insights-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.insight-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.section-header:hover {
+  background-color: #f0f0f0;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.section-header span {
+  font-size: 20px;
+  color: #666;
+}
+
+.section-content {
+  padding: 20px;
+  background-color: #fff;
+}
+
+.section-content p {
+  margin: 5px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.sub-section {
+  margin-top: 15px;
+}
+
+.sub-section h4 {
+  font-size: 16px;
+  color: #1a73e8;
+  margin-bottom: 10px;
+}
+
+.recommendation-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
