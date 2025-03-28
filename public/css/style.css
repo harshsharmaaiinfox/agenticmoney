@@ -940,11 +940,24 @@ margin-top: 20px;
 }
 }
 
+
+@media(max-width:380px){
+  .faq-section .my-h2{
+    font-size: 25px  !important;
+    line-height: 35px  !important;
+}
+}
 @media(max-width:768px){
 .banner-content h1 {
   font-size: 40px;
   line-height: 50px;
   margin-top: 15px;
+}
+.faq-section h2 {
+  padding: 10px;
+}
+.cta-button {
+  font-size: 15px !important;
 }
 .p-left {
   text-align: left;
@@ -957,7 +970,13 @@ margin-top: 20px;
 .advisory-content p {
   text-align: center;
 }
-
+.container.main-contaier {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+.my-flex {
+  justify-content: center;
+}
 p{
   font-size: 16px !important;
 }

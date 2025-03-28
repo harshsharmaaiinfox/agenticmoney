@@ -45,7 +45,7 @@ const Header = () => {
               </li>
             </ul>
 
-            <div className="d-flex">
+            <div className="d-flex my-flex">
               {/* <button className="btn me-3">
                 <i className="fas fa-search" />
               </button> */}
