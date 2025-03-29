@@ -465,13 +465,43 @@
 /* Left Side: Form Container */
 .form-container {
   flex: 1;
-  max-width: 50%;
+  max-width: 100%;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
 }
 
+
+@media(max-width:1000px){
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+    flex-direction: column;
+} 
+}
+
+@media(max-width:768px){
+  .container.form-content-wrapper {
+    flex-direction: column;
+    padding: 10px !important;
+}
+button.tab-btn {
+  font-size: 14px;
+  font-weight: 400 !important;
+}
+.main-container {
+  padding: 0;
+}
+button.btn-back {
+  font-size: 14px;
+}
+button.btn-next {
+  font-size: 14px;
+}
+}
 .form-content-wrapper {
   display: flex;
 }
@@ -523,7 +553,7 @@
 
 .form-section h2 {
   color: #1a73e8;
-  font-size: 24px;
+  font-size: 30px;
   margin-bottom: 10px;
 }
 
