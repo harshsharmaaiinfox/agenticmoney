@@ -456,10 +456,6 @@
 .main-container {
   display: flex;
   width: 100%;
-  min-height: 100vh;
-  padding: 20px;
-  background-color: #f5f7fa;
-  gap: 20px;
 }
 
 /* Left Side: Form Container */
@@ -504,6 +500,7 @@ button.btn-next {
 }
 .form-content-wrapper {
   display: flex;
+  padding: 0px;
 }
 
 .sidebar {

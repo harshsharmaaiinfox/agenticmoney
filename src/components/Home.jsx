@@ -1,16 +1,12 @@
 // src/components/FinancialData.js
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../service/client';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import Chart from "chart.js/auto";
-import DOMPurify from "dompurify";
 import Header from './Header';
 import Footer from './Footer';
-import { ClipLoader } from "react-spinners";
-
+import $ from 'jquery';
+import TabbedContent from '../components/Form-conponent';
 import {
   Bar,
   Pie,
@@ -133,10 +129,23 @@ const Home = () => {
 
 
   const showTab = (index) => {
-   
-    
     setActiveTab(index);
-  };
+    const tabId = `tab${index + 1}`; // Maps index 0 to tab1, 1 to tab2, etc.
+    const container = document.querySelector('.tabbed-content');
+    const items = container.querySelectorAll('.item');
+    items.forEach(item => item.classList.remove('active'));
+    const targetItem = document.getElementById(tabId);
+    if (targetItem) {
+        targetItem.classList.add('active');
+    }
+    const tabsNav = container.querySelector('.tabs');
+    const aTags = tabsNav.querySelectorAll('a');
+    aTags.forEach(a => a.classList.remove('active'));
+    const aTag = tabsNav.querySelector(`a[href="#${tabId}"]`);
+    if (aTag) {
+        aTag.classList.add('active');
+    }
+};
 
 
 
@@ -408,27 +417,61 @@ const handleSubmit = async () => {
   };
 
   useEffect(() => {
-    if (htmlDesign && isResultVisible) {
-      // Extract the script content
-      const scriptMatch = htmlDesign.match(
-        /<script>([\s\S]*?)<\/script>/
-      );
-      if (scriptMatch && scriptMatch[1]) {
-        try {
-          // Create a function from the script content
-          const scriptContent = scriptMatch[1].replace("window.onload = function ()", "return function ()");
-          const scriptFunction = new Function(scriptContent)();
-          scriptFunction();
-        } catch (e) {
-          console.error("Error executing chart script:", e);
-          const chartError = document.getElementById("chart-error");
-          if (chartError) {
-            chartError.style.display = "block";
-          }
-        }
-      }
-    }
-  }, [htmlDesign, isResultVisible]);
+    tabControl(); // run once on mount
+
+    let resizeTimer;
+    const handleResize = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            tabControl(); // run on resize end
+        }, 250);
+    };
+
+    $(window).on('resize', handleResize);
+
+    return () => {
+        $(window).off('resize', handleResize);
+    };
+}, []);
+
+
+
+const tabControl = () => {
+  const tabs = $('.tabbed-content .tabs');
+
+  // Unbind previous handlers to avoid duplicates
+  $('.tabs a').off('click');
+  $('.item').off('click');
+
+  if (tabs.css('display') !== 'none') {
+      $('.tabs a').on('click', function (event) {
+          event.preventDefault();
+          const target = $(this).attr('href');
+          const container = $(this).closest('.tabbed-content');
+          const items = container.find('.item');
+          const buttons = container.find('.tabs a');
+
+          buttons.removeClass('active');
+          items.removeClass('active');
+
+          $(this).addClass('active');
+          $(target).addClass('active');
+      });
+  } else {
+      $('.item').on('click', function () {
+          const container = $(this).closest('.tabbed-content');
+          const currId = $(this).attr('id');
+          const items = container.find('.item');
+
+          items.removeClass('active');
+          $(this).addClass('active');
+
+          container.find('.tabs a').removeClass('active');
+          container.find(`.tabs a[href$="#${currId}"]`).addClass('active');
+      });
+  }
+};
+
 
 
 
@@ -1151,515 +1194,541 @@ const handleSubmit = async () => {
           </p>
         </div>
       </div>
+      {/* how it works section end */}
 
+        {/* FORM SECTION START HERE */} 
       <div className="container">
         <h2 className="my-h2 text-center">
           Achieve Your Financial Goals with <br /> a Personalized Assessment
         </h2>
-        <div className="main-container">
+        <div className="container">
       {/* Left Side: Form */}
-      <div className="form-container">
-        <div className="container form-content-wrapper" style={{ display: "flex" }}>
-          {/* Sidebar with Tabs */}
-          <div className="sidebar">
-            <button className={`tab-btn ${activeTab === 0 ? "active" : ""}`} onClick={() => showTab(0)}>
-              Personal Financial Overview
-            </button>
-            <button className={`tab-btn ${activeTab === 1 ? "active" : ""}`} onClick={() => showTab(1)}>
-              Income & Expenses
-            </button>
-            <button className={`tab-btn ${activeTab === 2 ? "active" : ""}`} onClick={() => showTab(2)}>
-              Savings & Goals
-            </button>
-            <button className={`tab-btn ${activeTab === 4 ? "active" : ""}`} onClick={() => showTab(4)}>
-              Debt Management
-            </button>
-            <button className={`tab-btn ${activeTab === 5 ? "active" : ""}`} onClick={() => showTab(5)}>
-              Retirement Planning
-            </button>
-            <button className={`tab-btn ${activeTab === 6 ? "active" : ""}`} onClick={() => showTab(6)}>
-              Tax Optimization
-            </button>
-            <button className={`tab-btn ${activeTab === 7 ? "active" : ""}`} onClick={() => showTab(7)}>
-              Financial Education
-            </button>
-            <button className={`tab-btn ${activeTab === 8 ? "active" : ""}`} onClick={() => showTab(8)}>
-              Complete
-            </button>
-          </div>
+      <div className=''>
+            <article className="tabbed-content tabs-side">
+                <nav className="tabs">
+                    <ul>
+                        <li><a className={activeTab === 0 ? "activeTab" : "inactiveTab"} onClick={() => showTab(0)}  > Personal Financial Overview</a></li>
+                        <li><a className={activeTab === 1 ? "activeTab" : "inactiveTab"} onClick={() => showTab(1)} > Income & Expenses</a></li>
+                        <li><a className={activeTab === 2 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(2)} > Savings & Goals</a></li>
+                        <li><a className={activeTab === 3 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(3)} > Debt Management</a></li>
+                        <li><a className={activeTab === 4 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(4)} > Retirement Planning</a></li>
+                        <li><a className={activeTab === 5 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(5)} > Tax Optimization</a></li>
+                        <li><a className={activeTab === 6 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(6)} > Financial Education</a></li>
+                        <li><a className={activeTab === 7 ? "activeTab" : "inactiveTab"}  onClick={() => showTab(7)} > Complete</a></li>
+                    </ul>
+                </nav>
+                <section id="tab1" className="item active" data-title="Personal Financial Overview"  >
+                    <div className="item-content">
 
-          {/* Form Content */}
-          <div className="form-content">
-            {/* Personal Financial Overview */}
-            <div className={`form-section ${activeTab === 0 ? "active" : ""}`}>
-              <h2>Personal Financial Overview (Net Worth Calculation)</h2>
-              <p>Please provide information about your assets and liabilities</p>
+                        <div className={`form-section ${activeTab === 0 ? "active" : ""}`}>
+                            <h2>Personal Financial Overview (Net Worth Calculation)</h2>
+                            <p>Please provide information about your assets and liabilities</p>
+                            <div className="form-group">
+                                <label>Total bank accounts savings?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={bankSavings}
+                                    onChange={(e) => setBankSavings(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Total ISAs savings?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={iasSavings}
+                                    onChange={(e) => setIasSavings(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Total emergency fund savings?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={emergencySavings}
+                                    onChange={(e) => setEmergencySavings(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Do you own any real estate properties?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={ownsRealEstate === true}
+                                            onChange={() => setOwnsRealEstate(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={ownsRealEstate === false}
+                                            onChange={() => setOwnsRealEstate(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {ownsRealEstate && (
+                                <>
+                                    <div className="form-group">
+                                        <label>How many properties do you own?</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Enter number"
+                                            value={numProperties}
+                                            onChange={(e) => setNumProperties(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Estimated market value of property/properties</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={primaryResidenceValue}
+                                            onChange={(e) => setPrimaryResidenceValue(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            <div className="form-group">
+                                <label>Do you own rental or investment properties?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={ownsInvestmentProperties === true}
+                                            onChange={() => setOwnsInvestmentProperties(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={ownsInvestmentProperties === false}
+                                            onChange={() => setOwnsInvestmentProperties(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Do you have investments (stocks, bonds, ETFs, crypto)?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={hasInvestments === true}
+                                            onChange={() => setHasInvestments(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={hasInvestments === false}
+                                            onChange={() => setHasInvestments(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {hasInvestments && (
+                                <div className="form-group">
+                                    <label>Total estimated value of investments</label>
+                                    <input
+                                        type="text"
+                                        placeholder="£ Enter amount"
+                                        value={investmentsValue}
+                                        onChange={(e) => setInvestmentsValue(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            <div className="form-group">
+                                <label>Do you have valuable assets (e.g., jewelry, art)?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={hasValuableAssets === true}
+                                            onChange={() => setHasValuableAssets(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={hasValuableAssets === false}
+                                            onChange={() => setHasValuableAssets(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {hasValuableAssets && (
+                                <div className="form-group">
+                                    <label>Total estimated value of valuable assets</label>
+                                    <input
+                                        type="text"
+                                        placeholder="£ Enter amount"
+                                        value={valuableAssetsValue}
+                                        onChange={(e) => setValuableAssetsValue(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            <div className="form-group">
+                                <label>Credit Card balance?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={creditCardBalance}
+                                    onChange={(e) => setCreditCardBalance(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Credit Card Interest Rate?</label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter percentage"
+                                    value={creditCardInterestRate}
+                                    onChange={(e) => setCreditCardInterestRate(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Do you currently invest in stocks, bonds, or other financial assets?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={investsInFinancialAssets === true}
+                                            onChange={() => setInvestsInFinancialAssets(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={investsInFinancialAssets === false}
+                                            onChange={() => setInvestsInFinancialAssets(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+
+                            {investsInFinancialAssets && (
+                                <>
+                                    <div className="form-group">
+                                        <label>What percentage of your income do you allocate to investments?</label>
+                                        <div className="input-group">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter percentage"
+                                                value={investmentAllocationPercentage}
+                                                onChange={(e) => setInvestmentAllocationPercentage(e.target.value)}
+                                            />
+                                            <span>%</span>
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>How comfortable are you with investment risk?</label>
+                                        <div className="radio-group">
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    value="Low"
+                                                    checked={investmentRiskComfort === "Low"}
+                                                    onChange={() => setInvestmentRiskComfort("Low")}
+                                                /> Low
+                                            </label>
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    value="Medium"
+                                                    checked={investmentRiskComfort === "Medium"}
+                                                    onChange={() => setInvestmentRiskComfort("Medium")}
+                                                /> Medium
+                                            </label>
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    value="High"
+                                                    checked={investmentRiskComfort === "High"}
+                                                    onChange={() => setInvestmentRiskComfort("High")}
+                                                /> High
+                                            </label>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+
+                            <div className="nav-buttons">
+                                <button className="btn-next" onClick={() => { showTab(1); handleSubmitSteps(); }}>
+                                    Next →
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+                <section id="tab2" className="item" data-title="Income & Expenses"  >
+                    <div className="item-content">
+
+                        <div className={`form-section ${activeTab === 1 ? "active" : ""}`}>
+                            <h2>Income & Expenses (Budgeting & Cash Flow)</h2>
+                            <p>Please provide information about your income and expenses</p>
+                            <div className="form-group">
+                                <label>Total salary?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={monthlyIncome}
+                                    onChange={(e) => setMonthlyIncome(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Do you receive rental income?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={receivesRentalIncome === true}
+                                            onChange={() => setReceivesRentalIncome(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={receivesRentalIncome === false}
+                                            onChange={() => setReceivesRentalIncome(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {receivesRentalIncome && (
+                                <div className="form-group">
+                                    <label>If yes, how much do you receive monthly?</label>
+                                    <input
+                                        type="text"
+                                        placeholder="£ Enter amount"
+                                        value={monthlyRentalIncome}
+                                        onChange={(e) => setMonthlyRentalIncome(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            <div className="form-group">
+                                <label>Total monthly fixed expenses (mortgage/rent, utilities, insurance)?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={monthlyFixedExpenses}
+                                    onChange={(e) => setMonthlyFixedExpenses(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Total monthly variable expenses (groceries, dining, transport, entertainment)?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={monthlyVariableExpenses}
+                                    onChange={(e) => setMonthlyVariableExpenses(e.target.value)}
+                                />
+                            </div>
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(0)}>
+                                    ← Back to Financial Overview
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(2); handleSubmitSteps(); }}>
+                                    Savings & Goals →
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section id="tab3" className="item" data-title="Savings & Goals" >
+                    <div className="item-content">
+
+                        <div className={`form-section ${activeTab === 2 ? "active" : ""}`}>
+                            <h2>Savings & Financial Goals</h2>
+                            <p>Please provide information about your savings and financial goals</p>
+                            <div className="form-group">
+                                <label>How much do you have saved in an emergency fund?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={emergencyFund}
+                                    onChange={(e) => setEmergencyFund(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>How many months of living expenses can your emergency fund cover?</label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter number of months"
+                                    value={emergencyFundCoverageMonths}
+                                    onChange={(e) => setEmergencyFundCoverageMonths(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Are you currently saving for any financial goals?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={hasSavingsGoals === true}
+                                            onChange={() => setHasSavingsGoals(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={hasSavingsGoals === false}
+                                            onChange={() => setHasSavingsGoals(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {hasSavingsGoals && (
+                                <>
+                                    <div className="form-group">
+                                        <label>Goal 1:</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter goal description"
+                                            value={savingsGoal1Description}
+                                            onChange={(e) => setSavingsGoal1Description(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Target amount:</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={savingsGoal1Amount}
+                                            onChange={(e) => setSavingsGoal1Amount(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            <div className="form-group">
+                                <label>How much do you contribute to savings each month?</label>
+                                <input
+                                    type="text"
+                                    placeholder="£ Enter amount"
+                                    value={monthlySavingsContribution}
+                                    onChange={(e) => setMonthlySavingsContribution(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Are you planning to buy property in the next 5 years?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={plansToBuyProperty === true}
+                                            onChange={() => setPlansToBuyProperty(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={plansToBuyProperty === false}
+                                            onChange={() => setPlansToBuyProperty(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(1)}>
+                                    ← Back to Income & Expenses
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(3); handleSubmitSteps(); }}>
+                                    Debt Management →
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                {/* <div className={`form-section ${activeTab === 3 ? "active" : ""}`}>
+              <h2>Investments & Wealth Building</h2>
+              <p>Please provide information about your investment strategy</p>
               <div className="form-group">
-                <label>Total bank accounts savings?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={bankSavings}
-                  onChange={(e) => setBankSavings(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Total ISAs savings?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={iasSavings}
-                  onChange={(e) => setIasSavings(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Total emergency fund savings?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={emergencySavings}
-                  onChange={(e) => setEmergencySavings(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Do you own any real estate properties?</label>
+                <label>Do you currently invest in stocks, bonds, or other financial assets?</label>
                 <div className="radio-group">
                   <label>
                     <input
                       type="radio"
                       value="Yes"
-                      checked={ownsRealEstate === true}
-                      onChange={() => setOwnsRealEstate(true)}
+                      checked={investsInFinancialAssets === true}
+                      onChange={() => setInvestsInFinancialAssets(true)}
                     /> Yes
                   </label>
                   <label>
                     <input
                       type="radio"
                       value="No"
-                      checked={ownsRealEstate === false}
-                      onChange={() => setOwnsRealEstate(false)}
+                      checked={investsInFinancialAssets === false}
+                      onChange={() => setInvestsInFinancialAssets(false)}
                     /> No
                   </label>
                 </div>
               </div>
-              {ownsRealEstate && (
+              {investsInFinancialAssets && (
                 <>
                   <div className="form-group">
-                    <label>How many properties do you own?</label>
-                    <input
-                      type="number"
-                      placeholder="Enter number"
-                      value={numProperties}
-                      onChange={(e) => setNumProperties(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Estimated market value of property/properties</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={primaryResidenceValue}
-                      onChange={(e) => setPrimaryResidenceValue(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-              <div className="form-group">
-                <label>Do you own rental or investment properties?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={ownsInvestmentProperties === true}
-                      onChange={() => setOwnsInvestmentProperties(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={ownsInvestmentProperties === false}
-                      onChange={() => setOwnsInvestmentProperties(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Do you have investments (stocks, bonds, ETFs, crypto)?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={hasInvestments === true}
-                      onChange={() => setHasInvestments(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={hasInvestments === false}
-                      onChange={() => setHasInvestments(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {hasInvestments && (
-                <div className="form-group">
-                  <label>Total estimated value of investments</label>
-                  <input
-                    type="text"
-                    placeholder="£ Enter amount"
-                    value={investmentsValue}
-                    onChange={(e) => setInvestmentsValue(e.target.value)}
-                  />
-                </div>
-              )}
-              <div className="form-group">
-                <label>Do you have valuable assets (e.g., jewelry, art)?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={hasValuableAssets === true}
-                      onChange={() => setHasValuableAssets(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={hasValuableAssets === false}
-                      onChange={() => setHasValuableAssets(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {hasValuableAssets && (
-                <div className="form-group">
-                  <label>Total estimated value of valuable assets</label>
-                  <input
-                    type="text"
-                    placeholder="£ Enter amount"
-                    value={valuableAssetsValue}
-                    onChange={(e) => setValuableAssetsValue(e.target.value)}
-                  />
-                </div>
-              )}
-              <div className="form-group">
-                <label>Credit Card balance?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={creditCardBalance}
-                  onChange={(e) => setCreditCardBalance(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Credit Card Interest Rate?</label>
-                <input
-                  type="text"
-                  placeholder="Enter percentage"
-                  value={creditCardInterestRate}
-                  onChange={(e) => setCreditCardInterestRate(e.target.value)}
-                />
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-next" onClick={() => { showTab(1); handleSubmitSteps(); }}>
-                  Next →
-                </button>
-              </div>
-            </div>
-
-            {/* Income & Expenses */}
-            <div className={`form-section ${activeTab === 1 ? "active" : ""}`}>
-              <h2>Income & Expenses (Budgeting & Cash Flow)</h2>
-              <p>Please provide information about your income and expenses</p>
-              <div className="form-group">
-                <label>Total salary?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={monthlyIncome}
-                  onChange={(e) => setMonthlyIncome(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Do you receive rental income?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={receivesRentalIncome === true}
-                      onChange={() => setReceivesRentalIncome(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={receivesRentalIncome === false}
-                      onChange={() => setReceivesRentalIncome(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {receivesRentalIncome && (
-                <div className="form-group">
-                  <label>If yes, how much do you receive monthly?</label>
-                  <input
-                    type="text"
-                    placeholder="£ Enter amount"
-                    value={monthlyRentalIncome}
-                    onChange={(e) => setMonthlyRentalIncome(e.target.value)}
-                  />
-                </div>
-              )}
-              <div className="form-group">
-                <label>Total monthly fixed expenses (mortgage/rent, utilities, insurance)?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={monthlyFixedExpenses}
-                  onChange={(e) => setMonthlyFixedExpenses(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Total monthly variable expenses (groceries, dining, transport, entertainment)?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={monthlyVariableExpenses}
-                  onChange={(e) => setMonthlyVariableExpenses(e.target.value)}
-                />
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-back" onClick={() => showTab(0)}>
-                  ← Back to Financial Overview
-                </button>
-                <button className="btn-next" onClick={() => { showTab(2); handleSubmitSteps(); }}>
-                  Savings & Goals →
-                </button>
-              </div>
-            </div>
-
-            {/* Savings & Goals */}
-            <div className={`form-section ${activeTab === 2 ? "active" : ""}`}>
-              <h2>Savings & Financial Goals</h2>
-              <p>Please provide information about your savings and financial goals</p>
-              <div className="form-group">
-                <label>How much do you have saved in an emergency fund?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={emergencyFund}
-                  onChange={(e) => setEmergencyFund(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>How many months of living expenses can your emergency fund cover?</label>
-                <input
-                  type="number"
-                  placeholder="Enter number of months"
-                  value={emergencyFundCoverageMonths}
-                  onChange={(e) => setEmergencyFundCoverageMonths(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Are you currently saving for any financial goals?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={hasSavingsGoals === true}
-                      onChange={() => setHasSavingsGoals(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={hasSavingsGoals === false}
-                      onChange={() => setHasSavingsGoals(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {hasSavingsGoals && (
-                <>
-                  <div className="form-group">
-                    <label>Goal 1:</label>
-                    <input
-                      type="text"
-                      placeholder="Enter goal description"
-                      value={savingsGoal1Description}
-                      onChange={(e) => setSavingsGoal1Description(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Target amount:</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={savingsGoal1Amount}
-                      onChange={(e) => setSavingsGoal1Amount(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-              <div className="form-group">
-                <label>How much do you contribute to savings each month?</label>
-                <input
-                  type="text"
-                  placeholder="£ Enter amount"
-                  value={monthlySavingsContribution}
-                  onChange={(e) => setMonthlySavingsContribution(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Are you planning to buy property in the next 5 years?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={plansToBuyProperty === true}
-                      onChange={() => setPlansToBuyProperty(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={plansToBuyProperty === false}
-                      onChange={() => setPlansToBuyProperty(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-back" onClick={() => showTab(1)}>
-                  ← Back to Income & Expenses
-                </button>
-                <button className="btn-next" onClick={() => { showTab(4); handleSubmitSteps(); }}>
-                  Debt Management →
-                </button>
-              </div>
-            </div>
-
-            {/* Debt Management */}
-            <div className={`form-section ${activeTab === 4 ? "active" : ""}`}>
-              <h2>Debt Management</h2>
-              <p>Please provide information about your debt management strategy</p>
-              <div className="form-group">
-                <label>Do you have a mortgage?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={hasMortgage === true}
-                      onChange={() => setHasMortgage(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={hasMortgage === false}
-                      onChange={() => setHasMortgage(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {hasMortgage && (
-                <>
-                  <div className="form-group">
-                    <label>Current mortgage balance</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={mortgageBalance}
-                      onChange={(e) => setMortgageBalance(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Monthly mortgage payment</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={monthlyMortgagePayment}
-                      onChange={(e) => setMonthlyMortgagePayment(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Mortgage interest rate</label>
+                    <label>What percentage of your income do you allocate to investments?</label>
                     <div className="input-group">
                       <input
                         type="text"
                         placeholder="Enter percentage"
-                        value={mortgageInterestRate}
-                        onChange={(e) => setMortgageInterestRate(e.target.value)}
+                        value={investmentAllocationPercentage}
+                        onChange={(e) => setInvestmentAllocationPercentage(e.target.value)}
                       />
                       <span>%</span>
                     </div>
                   </div>
                   <div className="form-group">
-                    <label>Years left on mortgage</label>
-                    <input
-                      type="number"
-                      placeholder="Enter years"
-                      value={mortgageYearsLeft}
-                      onChange={(e) => setMortgageYearsLeft(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-              <div className="form-group">
-                <label>Do you have other debts (credit cards, loans)?</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      value="Yes"
-                      checked={hasOtherDebts === true}
-                      onChange={() => setHasOtherDebts(true)}
-                    /> Yes
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      value="No"
-                      checked={hasOtherDebts === false}
-                      onChange={() => setHasOtherDebts(false)}
-                    /> No
-                  </label>
-                </div>
-              </div>
-              {hasOtherDebts && (
-                <>
-                  <div className="form-group">
-                    <label>Total balance of other debts</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={otherDebtBalance}
-                      onChange={(e) => setOtherDebtBalance(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Monthly repayment for other debts</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={monthlyDebtRepayment}
-                      onChange={(e) => setMonthlyDebtRepayment(e.target.value)}
-                    />
+                    <label>How comfortable are you with investment risk?</label>
+                    <div className="radio-group">
+                      <label>
+                        <input
+                          type="radio"
+                          value="Low"
+                          checked={investmentRiskComfort === "Low"}
+                          onChange={() => setInvestmentRiskComfort("Low")}
+                        /> Low
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="Medium"
+                          checked={investmentRiskComfort === "Medium"}
+                          onChange={() => setInvestmentRiskComfort("Medium")}
+                        /> Medium
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="High"
+                          checked={investmentRiskComfort === "High"}
+                          onChange={() => setInvestmentRiskComfort("High")}
+                        /> High
+                      </label>
+                    </div>
                   </div>
                 </>
               )}
@@ -1667,398 +1736,539 @@ const handleSubmit = async () => {
                 <button className="btn-back" onClick={() => showTab(2)}>
                   ← Back to Savings & Goals
                 </button>
-                <button className="btn-next" onClick={() => { showTab(5); handleSubmitSteps(); }}>
-                  Retirement Planning →
+                <button className="btn-next" onClick={() => showTab(4)}>
+                  Debt Management →
                 </button>
               </div>
-            </div>
+            </div> */}
+                <section id="tab4" className="item" data-title="Debt Management" >
+                    <div className="item-content">
 
-            {/* Retirement Planning */}
-            <div className={`form-section ${activeTab === 5 ? "active" : ""}`}>
-              <h2>Retirement Planning</h2>
-              <p>Please provide information about your retirement plans</p>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Do you have a workplace pension?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={hasWorkplacePension === true}
-                        onChange={() => setHasWorkplacePension(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={hasWorkplacePension === false}
-                        onChange={() => setHasWorkplacePension(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-                {hasWorkplacePension && (
-                  <div className="form-group">
-                    <label>If yes, what is your current pension balance?</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={pensionBalance}
-                      onChange={(e) => setPensionBalance(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Does your employer match contributions?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={employerMatchesPension === true}
-                        onChange={() => setEmployerMatchesPension(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={employerMatchesPension === false}
-                        onChange={() => setEmployerMatchesPension(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-                {employerMatchesPension && (
-                  <div className="form-group">
-                    <label>How much do you contribute monthly?</label>
-                    <input
-                      type="text"
-                      placeholder="£ Enter amount"
-                      value={monthlyPensionContribution}
-                      onChange={(e) => setMonthlyPensionContribution(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Do you have a private pension (SIPP, LISA, or other)?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={hasPrivatePension === true}
-                        onChange={() => setHasPrivatePension(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={hasPrivatePension === false}
-                        onChange={() => setHasPrivatePension(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Do you plan to use property equity (downsizing, rental income) in retirement?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={plansToUsePropertyEquity === true}
-                        onChange={() => setPlansToUsePropertyEquity(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={plansToUsePropertyEquity === false}
-                        onChange={() => setPlansToUsePropertyEquity(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>At what age do you plan to retire?</label>
-                  <input
-                    type="text"
-                    placeholder="Enter age"
-                    value={plannedRetirementAge}
-                    onChange={(e) => setPlannedRetirementAge(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-back" onClick={() => showTab(4)}>
-                  ← Back to Debt Management
-                </button>
-                <button className="btn-next" onClick={() => { showTab(6); handleSubmitSteps(); }}>
-                  Tax Optimization →
-                </button>
-              </div>
-            </div>
+                        <div className={`form-section ${activeTab === 3 ? "active" : ""}`}>
+                            <h2>Debt Management</h2>
+                            <p>Please provide information about your debt management strategy</p>
+                            <div className="form-group">
+                                <label>Do you have a mortgage?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={hasMortgage === true}
+                                            onChange={() => setHasMortgage(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={hasMortgage === false}
+                                            onChange={() => setHasMortgage(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {hasMortgage && (
+                                <>
+                                    <div className="form-group">
+                                        <label>Current mortgage balance</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={mortgageBalance}
+                                            onChange={(e) => setMortgageBalance(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Monthly mortgage payment</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={monthlyMortgagePayment}
+                                            onChange={(e) => setMonthlyMortgagePayment(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Mortgage interest rate</label>
+                                        <div className="input-group">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter percentage"
+                                                value={mortgageInterestRate}
+                                                onChange={(e) => setMortgageInterestRate(e.target.value)}
+                                            />
+                                            <span>%</span>
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Years left on mortgage</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Enter years"
+                                            value={mortgageYearsLeft}
+                                            onChange={(e) => setMortgageYearsLeft(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            <div className="form-group">
+                                <label>Do you have other debts (credit cards, loans)?</label>
+                                <div className="radio-group">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="Yes"
+                                            checked={hasOtherDebts === true}
+                                            onChange={() => setHasOtherDebts(true)}
+                                        /> Yes
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            value="No"
+                                            checked={hasOtherDebts === false}
+                                            onChange={() => setHasOtherDebts(false)}
+                                        /> No
+                                    </label>
+                                </div>
+                            </div>
+                            {hasOtherDebts && (
+                                <>
+                                    <div className="form-group">
+                                        <label>Total balance of other debts</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={otherDebtBalance}
+                                            onChange={(e) => setOtherDebtBalance(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Monthly repayment for other debts</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={monthlyDebtRepayment}
+                                            onChange={(e) => setMonthlyDebtRepayment(e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(2)}>
+                                    ← Back to Savings & Goals
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(4); handleSubmitSteps(); }}>
+                                    Retirement Planning →
+                                </button>
+                            </div>
+                        </div>
 
-            {/* Tax Optimization */}
-            <div className={`form-section ${activeTab === 6 ? "active" : ""}`}>
-              <h2>Tax Optimization</h2>
-              <p>Please provide information about your tax planning strategies</p>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Do you contribute to tax-efficient investment accounts (Stocks & Shares ISA, Pension, LISA)?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={usesTaxEfficientAccounts === true}
-                        onChange={() => setUsesTaxEfficientAccounts(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={usesTaxEfficientAccounts === false}
-                        onChange={() => setUsesTaxEfficientAccounts(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Have you maxed out your annual ISA allowance?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={maxedIsaAllowance === true}
-                        onChange={() => setMaxedIsaAllowance(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={maxedIsaAllowance === false}
-                        onChange={() => setMaxedIsaAllowance(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Do you track your capital gains for tax purposes?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={tracksCapitalGains === true}
-                        onChange={() => setTracksCapitalGains(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={tracksCapitalGains === false}
-                        onChange={() => setTracksCapitalGains(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Do you donate to charity and claim tax relief (Gift Aid)?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={donatesToCharity === true}
-                        onChange={() => setDonatesToCharity(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={donatesToCharity === false}
-                        onChange={() => setDonatesToCharity(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-back" onClick={() => showTab(5)}>
-                  ← Back to Retirement Planning
-                </button>
-                <button className="btn-next" onClick={() => { showTab(7); handleSubmitSteps(); }}>
-                  Financial Education →
-                </button>
-              </div>
-            </div>
+                    </div>
+                </section>
+                <section id="tab5" className="item" data-title="Retirement Planning" >
+                    <div className="item-content">
 
-            {/* Financial Education */}
-            <div className={`form-section ${activeTab === 7 ? "active" : ""}`}>
-              <h2>Financial Education & Planning Preferences</h2>
-              <p>Please provide information about your financial education needs</p>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>What financial topics do you need the most help with? (Select all that apply)</label>
-                  <div className="checkbox-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Investment Planning"
-                        checked={needsInvestmentHelp}
-                        onChange={(e) => setNeedsInvestmentHelp(e.target.checked)}
-                      /> Investment Planning
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Budgetting Help"
-                        checked={needsBudgetHelp}
-                        onChange={(e) => setNeedsBudgetHelp(e.target.checked)}
-                      /> Budgetting Help
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Debt Help"
-                        checked={needsDebtHelp}
-                        onChange={(e) => setNeedsDebtHelp(e.target.checked)}
-                      /> Debt Help
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Real Estate Help"
-                        checked={needsRealEstateHelp}
-                        onChange={(e) => setNeedsRealEstateHelp(e.target.checked)}
-                      /> Real Estate Help
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Retirement Help"
-                        checked={needsRetirementHelp}
-                        onChange={(e) => setNeedsRetirementHelp(e.target.checked)}
-                      /> Retirement Help
-                    </label>
-                    <label>
-                      <input
-                        type="checkbox"
-                        value="Tax Help"
-                        checked={needsTaxHelp}
-                        onChange={(e) => setNeedsTaxHelp(e.target.checked)}
-                      /> Tax Help
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group half-width">
-                  <label>Do you currently use financial tools/apps to track your finances?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={usesFinancialTools === true}
-                        onChange={() => setUsesFinancialTools(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={usesFinancialTools === false}
-                        onChange={() => setUsesFinancialTools(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-                {usesFinancialTools && (
-                  <div className="form-group half-width">
-                    <label>If yes, which one(s)?</label>
-                    <input
-                      type="text"
-                      placeholder="Enter tools/apps"
-                      value={financialTools}
-                      onChange={(e) => setFinancialTools(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Would you be interested in a personalized financial plan based on this data?</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        value="Yes"
-                        checked={wantsPersonalizedPlan === true}
-                        onChange={() => setWantsPersonalizedPlan(true)}
-                      /> Yes
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="No"
-                        checked={wantsPersonalizedPlan === false}
-                        onChange={() => setWantsPersonalizedPlan(false)}
-                      /> No
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="nav-buttons">
-                <button className="btn-back" onClick={() => showTab(6)}>
-                  ← Back to Tax Optimization
-                </button>
-                <button className="btn-next" onClick={() => { showTab(8); handleSubmitSteps(); }}>
-                  Complete →
-                </button>
-              </div>
-            </div>
+                        <div className={`form-section ${activeTab === 4 ? "active" : ""}`}>
+                            <h2>Retirement Planning</h2>
+                            <p>Please provide information about your retirement plans</p>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Do you have a workplace pension?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={hasWorkplacePension === true}
+                                                onChange={() => setHasWorkplacePension(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={hasWorkplacePension === false}
+                                                onChange={() => setHasWorkplacePension(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                                {hasWorkplacePension && (
+                                    <div className="form-group">
+                                        <label>If yes, what is your current pension balance?</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={pensionBalance}
+                                            onChange={(e) => setPensionBalance(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Does your employer match contributions?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={employerMatchesPension === true}
+                                                onChange={() => setEmployerMatchesPension(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={employerMatchesPension === false}
+                                                onChange={() => setEmployerMatchesPension(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                                {employerMatchesPension && (
+                                    <div className="form-group">
+                                        <label>How much do you contribute monthly?</label>
+                                        <input
+                                            type="text"
+                                            placeholder="£ Enter amount"
+                                            value={monthlyPensionContribution}
+                                            onChange={(e) => setMonthlyPensionContribution(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Do you have a private pension (SIPP, LISA, or other)?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={hasPrivatePension === true}
+                                                onChange={() => setHasPrivatePension(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={hasPrivatePension === false}
+                                                onChange={() => setHasPrivatePension(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Do you plan to use property equity (downsizing, rental income) in retirement?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={plansToUsePropertyEquity === true}
+                                                onChange={() => setPlansToUsePropertyEquity(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={plansToUsePropertyEquity === false}
+                                                onChange={() => setPlansToUsePropertyEquity(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>At what age do you plan to retire?</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter age"
+                                        value={plannedRetirementAge}
+                                        onChange={(e) => setPlannedRetirementAge(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(3)}>
+                                    ← Back to Debt Management
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(5); handleSubmitSteps(); }}>
+                                    Tax Optimization →
+                                </button>
+                            </div>
+                        </div>
 
-            {/* Success Message */}
-            <div className={`form-section ${activeTab === 8 ? "active" : ""}`} id="success-message" style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 60, color: "#2B63E1", marginBottom: 20 }}>
-                <i className="fa-regular fa-circle-check" />
-              </div>
-              <h2>Thank You for Completing Your Financial Assessment!</h2>
-              <p>
-                Your information has been submitted successfully. Our financial advisors will review your data and contact you shortly with personalized recommendations.
-              </p>
-              <button className="btn-start" onClick={handleSubmit} disabled={loading}>
-                {loading ? "Submitting..." : "View Summary"}
-              </button>
-              {error && <p className="error-message">{error}</p>}
-            </div>
-          </div>
+                    </div>
+                </section>
+                <section id="tab6" className="item" data-title="Tax Optimization" >
+                    <div className="item-content">
+                        <div className={`form-section ${activeTab === 5 ? "active" : ""}`}>
+                            <h2>Tax Optimization</h2>
+                            <p>Please provide information about your tax planning strategies</p>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>Do you contribute to tax-efficient investment accounts (Stocks & Shares ISA, Pension, LISA)?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={usesTaxEfficientAccounts === true}
+                                                onChange={() => setUsesTaxEfficientAccounts(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={usesTaxEfficientAccounts === false}
+                                                onChange={() => setUsesTaxEfficientAccounts(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>Have you maxed out your annual ISA allowance?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={maxedIsaAllowance === true}
+                                                onChange={() => setMaxedIsaAllowance(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={maxedIsaAllowance === false}
+                                                onChange={() => setMaxedIsaAllowance(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>Do you track your capital gains for tax purposes?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={tracksCapitalGains === true}
+                                                onChange={() => setTracksCapitalGains(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={tracksCapitalGains === false}
+                                                onChange={() => setTracksCapitalGains(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>Do you donate to charity and claim tax relief (Gift Aid)?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={donatesToCharity === true}
+                                                onChange={() => setDonatesToCharity(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={donatesToCharity === false}
+                                                onChange={() => setDonatesToCharity(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(4)}>
+                                    ← Back to Retirement Planning
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(6); handleSubmitSteps(); }}>
+                                    Financial Education →
+                                </button>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </section>
+                <section id="tab7" className="item" data-title="Financial Education" >
+                    <div className="item-content">
+
+
+                        <div className={`form-section ${activeTab === 6 ? "active" : ""}`}>
+                            <h2>Financial Education & Planning Preferences</h2>
+                            <p>Please provide information about your financial education needs</p>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>What financial topics do you need the most help with? (Select all that apply)</label>
+                                    <div className="checkbox-group">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Investment Planning"
+                                                checked={needsInvestmentHelp}
+                                                onChange={(e) => setNeedsInvestmentHelp(e.target.checked)}
+                                            /> Investment Planning
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Budgetting Help"
+                                                checked={needsBudgetHelp}
+                                                onChange={(e) => setNeedsBudgetHelp(e.target.checked)}
+                                            /> Budgetting Help
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Debt Help"
+                                                checked={needsDebtHelp}
+                                                onChange={(e) => setNeedsDebtHelp(e.target.checked)}
+                                            /> Debt Help
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Real Estate Help"
+                                                checked={needsRealEstateHelp}
+                                                onChange={(e) => setNeedsRealEstateHelp(e.target.checked)}
+                                            /> Real Estate Help
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Retirement Help"
+                                                checked={needsRetirementHelp}
+                                                onChange={(e) => setNeedsRetirementHelp(e.target.checked)}
+                                            /> Retirement Help
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Tax Help"
+                                                checked={needsTaxHelp}
+                                                onChange={(e) => setNeedsTaxHelp(e.target.checked)}
+                                            /> Tax Help
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group half-width">
+                                    <label>Do you currently use financial tools/apps to track your finances?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={usesFinancialTools === true}
+                                                onChange={() => setUsesFinancialTools(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={usesFinancialTools === false}
+                                                onChange={() => setUsesFinancialTools(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                                {usesFinancialTools && (
+                                    <div className="form-group half-width">
+                                        <label>If yes, which one(s)?</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter tools/apps"
+                                            value={financialTools}
+                                            onChange={(e) => setFinancialTools(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group full-width">
+                                    <label>Would you be interested in a personalized financial plan based on this data?</label>
+                                    <div className="radio-group">
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="Yes"
+                                                checked={wantsPersonalizedPlan === true}
+                                                onChange={() => setWantsPersonalizedPlan(true)}
+                                            /> Yes
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                value="No"
+                                                checked={wantsPersonalizedPlan === false}
+                                                onChange={() => setWantsPersonalizedPlan(false)}
+                                            /> No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="nav-buttons">
+                                <button className="btn-back" onClick={() => showTab(5)}>
+                                    ← Back to Tax Optimization
+                                </button>
+                                <button className="btn-next" onClick={() => { showTab(7); handleSubmitSteps(); }}>
+                                    Complete →
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+                <section id="tab8" className="item" data-title="Completed" >
+                    <div className="item-content">
+
+                        <div className={`form-section ${activeTab === 7 ? "active" : ""}`} id="success-message" style={{ textAlign: "center" }}>
+                            <div style={{ fontSize: 60, color: "#2B63E1", marginBottom: 20 }}>
+                                <i className="fa-regular fa-circle-check" />
+                            </div>
+                            <h2>Thank You for Completing Your Financial Assessment!</h2>
+                            <p>
+                                Your information has been submitted successfully. Our financial advisors will review your data and contact you shortly with personalized recommendations.
+                            </p>
+                            <button className="btn-start" onClick={handleSubmit} disabled={loading}>
+                                {loading ? "Submitting..." : "View Summary"}
+                            </button>
+                            {error && <p className="error-message">{error}</p>}
+                        </div>
+
+                    </div>
+                </section>
+            </article>
         </div>
-      </div>
         {stepsInsights ? <>
  
       <div className="response-container">
@@ -2402,7 +2612,9 @@ const handleSubmit = async () => {
       </div>
       {/* FORM SECTION ENDS HERE */}
 
-
+        {/* TAB FORM  */}
+{/* <TabbedContent/> */}
+        {/* TAB FORM END */}
 
       {/* QUERY SECTION START */}
       <div className="container query-section">
